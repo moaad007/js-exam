@@ -20,23 +20,31 @@ app.use("/api/rooms", roomRoutes);
 app.use("/api/reservations", reservationRoutes);
 app.use("/api/auth", authRoutes);
 
-app.get(
-  "/api/stats",
-  async (req, res, next) => {
-    try {
-      const [totalRiads, totalRooms, availableRooms, reservations] =
-        await Promise.all([
-          prisma.riad.count(),
-          prisma.room.count(),
-          prisma.room.count({ where: { available: true } }),
-          prisma.reservation.count(),
-        ]);
-      res.json({ totalRiads, totalRooms, availableRooms, reservations });
-    } catch (err) {
-      next(err);
-    }
+// Also mount under /api/backend so the API works whether or not the
+// hosting proxy strips the /api/backend prefix.
+app.use("/api/backend/riads", riadRoutes);
+app.use("/api/backend/rooms", roomRoutes);
+app.use("/api/backend/reservations", reservationRoutes);
+app.use("/api/backend/auth", authRoutes);
+app.get("/api/backend/health", (req, res) => res.json({ status: "ok" }));
+
+const statsHandler = async (req, res, next) => {
+  try {
+    const [totalRiads, totalRooms, availableRooms, reservations] =
+      await Promise.all([
+        prisma.riad.count(),
+        prisma.room.count(),
+        prisma.room.count({ where: { available: true } }),
+        prisma.reservation.count(),
+      ]);
+    res.json({ totalRiads, totalRooms, availableRooms, reservations });
+  } catch (err) {
+    next(err);
   }
-);
+};
+
+app.get("/api/stats", statsHandler);
+app.get("/api/backend/stats", statsHandler);
 
 app.use((req, res, next) => {
   next(new AppError(`Route not found: ${req.originalUrl}`, 404));

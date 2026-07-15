@@ -115,9 +115,28 @@ npm run dev                  # http://localhost:3000
 
 ## 7. Deployment
 
+### Monorepo on Vercel
+
+The root `vercel.json` defines two services (`frontend`, `backend`) and
+rewrites so the backend is reachable from the frontend at `/api/backend`:
+
+- Import the repo as a **Vercel monorepo** (Root Directory = `.`).
+- Vercel reads `vercel.json`: the `frontend` service uses the Next.js
+  framework; the `backend` service is deployed as a Node server.
+- Set the frontend environment variable:
+  - `NEXT_PUBLIC_API_URL=/api/backend` (so calls hit the rewrite proxy)
+- Set the backend environment variables:
+  - `DATABASE_URL` → your PostgreSQL provider (Neon / Supabase / Railway)
+  - `JWT_SECRET`, `CLIENT_URL` (optional, CORS)
+  - Add a build/start step: `npx prisma migrate deploy`
+- **Database → PostgreSQL** (Railway / Neon / Supabase).
+
+> Locally, `NEXT_PUBLIC_API_URL` stays `http://localhost:4000/api`.
+
+### Alternative (separate projects)
+
 - **Frontend → Vercel:** import the `frontend` folder, set
   `NEXT_PUBLIC_API_URL` to the deployed backend URL.
 - **Backend → Railway / Render:** deploy the `backend` folder, set
-  `DATABASE_URL` to your PostgreSQL provider (Neon / Supabase / Railway) and
+  `DATABASE_URL` to your PostgreSQL provider and
   run `npx prisma migrate deploy` as a build/start step.
-- **Database → PostgreSQL** (Railway / Neon / Supabase).
