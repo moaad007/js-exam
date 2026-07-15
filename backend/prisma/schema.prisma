@@ -1,0 +1,69 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Riad {
+  id            String   @id @default(uuid())
+  name          String
+  city          String
+  address       String
+  description   String
+  pricePerNight Float    @map("price_per_night")
+  imageUrl      String   @map("image_url")
+  createdAt     DateTime @default(now()) @map("created_at")
+  rooms         Room[]
+
+  @@map("riads")
+}
+
+model Room {
+  id            String    @id @default(uuid())
+  riadId        String    @map("riad_id")
+  name          String
+  type          String
+  pricePerNight Float     @map("price_per_night")
+  available     Boolean   @default(true)
+  riad          Riad      @relation(fields: [riadId], references: [id], onDelete: Cascade)
+  reservations  Reservation[]
+
+  @@map("rooms")
+}
+
+model Client {
+  id        String        @id @default(uuid())
+  firstName String        @map("first_name")
+  lastName  String        @map("last_name")
+  email     String        @unique
+  phone     String
+  reservations Reservation[]
+
+  @@map("clients")
+}
+
+model Reservation {
+  id        String   @id @default(uuid())
+  clientId  String   @map("client_id")
+  roomId    String   @map("room_id")
+  startDate DateTime @map("start_date")
+  endDate   DateTime @map("end_date")
+  status    String   @default("Pending")
+  createdAt DateTime @default(now()) @map("created_at")
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@map("reservations")
+}
+
+model Admin {
+  id       String   @id @default(uuid())
+  email    String   @unique
+  password String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("admins")
+}
