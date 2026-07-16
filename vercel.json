@@ -6,7 +6,8 @@
         },
         "backend": {
             "root": "backend",
-            "entrypoint": "src/server.js"
+            "entrypoint": "src/server.js",
+            "buildCommand": "prisma generate"
         }
     },
     "rewrites": [
